@@ -220,7 +220,7 @@ function showDailyQuest() {
   if (player.dailyCooldown > now) {
     box.innerHTML = `<div class="quest-title">เควสประจำวัน</div><div class="cooldown">ต้องรอ: ${cooldownRemaining(player.dailyCooldown)}</div>`;
   } else {
-    box.innerHTML = `<div class="quest-title">ทำวิดพื้น 20 ครั้ง และ ซิตอัพ 10 ครั้ง</div><button onclick="completeDailyQuest()">เสร็จสิ้น</button>`;
+    box.innerHTML = `<div class="quest-title">ทำวิดพื้น 25 ครั้ง และ ซิตอัพ 15 ครั้ง</div><button onclick="completeDailyQuest()">เสร็จสิ้น</button>`;
   }
   area.appendChild(box);
 }
