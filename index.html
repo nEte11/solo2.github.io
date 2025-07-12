@@ -244,7 +244,7 @@ function showRandomQuest() {
   if (player.randomCooldown > now) {
     box.innerHTML = `<div class="quest-title">สุ่มภารกิจ</div><div class="cooldown">ต้องรอ: ${cooldownRemaining(player.randomCooldown)}</div>`;
   } else {
-    const ex = ["วิดพื้น 30 ครั้ง", "ซิตอัพ 20 ครั้ง", "แพลงก์ 1 นาที", "วิ่ง 2 กม."];
+    const ex = ["วิดพื้น 30 ครั้ง", "ซิตอัพ 20 ครั้ง", "แพลงก์ 1 นาที", ];
     const chosen = ex[Math.floor(Math.random() * ex.length)];
     box.innerHTML = `<div class="quest-title">ภารกิจ: ${chosen}</div><button onclick="completeRandomQuest()">เสร็จสิ้น</button>`;
   }
