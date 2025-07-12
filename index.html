@@ -1,0 +1,341 @@
+<!-- HTML Solo Leveling UI รวมระบบเควส บอส ฉายา พร้อม UI เท่ๆ -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solo Leveling UI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+    body {
+      margin: 0;
+      background: #010a1a;
+      color: #b6d0ff;
+      font-family: 'Orbitron', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      margin: 20px 0 10px;
+      font-size: 2rem;
+      font-weight: 700;
+      border-bottom: 2px solid #5bcaff;
+      padding-bottom: 5px;
+      letter-spacing: 0.15em;
+      color: #a9d4ff;
+    }
+    .status-box {
+      background: rgba(20,40,70,0.6);
+      border: 1px solid #3da2ff;
+      padding: 20px 40px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 0 12px #2993ff88;
+      margin-bottom: 25px;
+    }
+    .status-box .level {
+      font-size: 4rem;
+      font-weight: 700;
+      color: #7fcbff;
+    }
+    .status-box .title {
+      font-size: 1.1rem;
+      color: #80bfff;
+    }
+    .menu {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #023f91;
+      border: 2px solid #4ea3ff;
+      color: #a6d1ff;
+      padding: 10px 25px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 8px #3da3ffaa;
+      transition: 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background: #0765dd;
+      box-shadow: 0 0 15px #4ea3ffcc;
+    }
+    button:disabled {
+      background: #1a1a1a;
+      border-color: #555;
+      color: #444;
+      cursor: default;
+      box-shadow: none;
+    }
+    .content {
+      background: rgba(20,40,70,0.5);
+      padding: 20px 30px;
+      border-radius: 12px;
+      width: 360px;
+      min-height: 200px;
+      box-shadow: 0 0 15px #2277ffaa inset;
+      color: #c0dbff;
+      font-size: 1rem;
+    }
+    .boss-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .boss {
+      flex: 1 1 45%;
+      background: #0352a1;
+      border-radius: 8px;
+      padding: 10px 5px;
+      text-align: center;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 6px #3f94ff;
+      transition: 0.25s;
+      user-select: none;
+    }
+    .boss.locked {
+      background: #0b2345;
+      color: #446688;
+      cursor: default;
+      box-shadow: none;
+    }
+    .boss:hover:not(.locked) {
+      background: #0971dd;
+      box-shadow: 0 0 15px #67a9ff;
+    }
+    .boss-reward {
+      margin-top: 12px;
+      font-weight: 700;
+      color: #8cd4ff;
+      min-height: 40px;
+    }
+    .quest-box {
+      border: 1px solid #3a7bff;
+      background: #0b1e44;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+      box-shadow: 0 0 10px #3da2ffaa;
+    }
+    .quest-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      color: #80c8ff;
+    }
+    .cooldown {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 5px;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      background: #0b1e44;
+      border: 1.5px solid #3a7bff;
+      border-radius: 6px;
+      color: #c0dbff;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header>STATUS</header>
+
+<div class="status-box">
+  <div class="level" id="playerLevel">1</div>
+  <div class="title" id="playerTitle">Wolf Assassin</div>
+</div>
+
+<div class="menu">
+  <button onclick="showDailyQuest()">เควสประจำวัน</button>
+  <button onclick="showRandomQuest()">สุ่มภารกิจ</button>
+  <button onclick="renderBoss()">ตีบอส</button>
+  <button onclick="renderTitleSelection()">เลือกฉายา</button>
+</div>
+
+<div class="content" id="contentArea">
+  <em>เลือกเมนูด้านบนเพื่อเริ่มเล่น</em>
+</div>
+
+<script>
+const PLAYER_KEY = "soloLevelingPlayer";
+let player = {
+  level: 1,
+  currentTitle: "Wolf Assassin",
+  titles: ["Wolf Assassin"],
+  bossesDefeated: [],
+  dailyCooldown: 0,
+  randomCooldown: 0
+};
+const bossData = {
+  10: { pushup: 25, situp: 0, title: "Beginner Crusher" },
+  20: { pushup: 30, situp: 15, title: "Dual Fighter" },
+  30: { pushup: 40, situp: 25, title: "Iron Core" },
+  40: { pushup: 50, situp: 30, title: "Sweat Warrior" },
+  50: { pushup: 60, situp: 35, title: "Beast Breaker" },
+  60: { pushup: 70, situp: 40, title: "Endurance Titan" },
+  70: { pushup: 80, situp: 50, title: "Human Machine" },
+  80: { pushup: 100, situp: 60, title: "Boss Slayer" }
+};
+
+function save() {
+  localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+}
+function load() {
+  const data = localStorage.getItem(PLAYER_KEY);
+  if (data) player = JSON.parse(data);
+}
+function updateUI() {
+  document.getElementById("playerLevel").textContent = player.level;
+  document.getElementById("playerTitle").textContent = player.currentTitle;
+}
+function cooldownRemaining(end) {
+  const ms = end - Date.now();
+  if (ms <= 0) return null;
+  const hr = Math.floor(ms / 3600000);
+  const min = Math.floor((ms % 3600000) / 60000);
+  return `${hr}ชม ${min}นาที`;
+}
+
+function showDailyQuest() {
+  const area = document.getElementById("contentArea");
+  area.innerHTML = "";
+
+  const box = document.createElement("div");
+  box.className = "quest-box";
+
+  const now = Date.now();
+  if (player.dailyCooldown > now) {
+    box.innerHTML = `<div class="quest-title">เควสประจำวัน</div><div class="cooldown">ต้องรอ: ${cooldownRemaining(player.dailyCooldown)}</div>`;
+  } else {
+    box.innerHTML = `<div class="quest-title">ทำวิดพื้น 20 ครั้ง และ ซิตอัพ 10 ครั้ง</div><button onclick="completeDailyQuest()">เสร็จสิ้น</button>`;
+  }
+  area.appendChild(box);
+}
+function completeDailyQuest() {
+  player.level++;
+  player.dailyCooldown = Date.now() + 12 * 60 * 60 * 1000; // 12 ชม
+  save();
+  updateUI();
+  alert("ทำเควสเสร็จ! ได้เลเวล +1");
+  showDailyQuest();
+}
+
+function showRandomQuest() {
+  const area = document.getElementById("contentArea");
+  area.innerHTML = "";
+
+  const box = document.createElement("div");
+  box.className = "quest-box";
+
+  const now = Date.now();
+  if (player.randomCooldown > now) {
+    box.innerHTML = `<div class="quest-title">สุ่มภารกิจ</div><div class="cooldown">ต้องรอ: ${cooldownRemaining(player.randomCooldown)}</div>`;
+  } else {
+    const ex = ["วิดพื้น 30 ครั้ง", "ซิตอัพ 20 ครั้ง", "แพลงก์ 1 นาที", "วิ่ง 2 กม."];
+    const chosen = ex[Math.floor(Math.random() * ex.length)];
+    box.innerHTML = `<div class="quest-title">ภารกิจ: ${chosen}</div><button onclick="completeRandomQuest()">เสร็จสิ้น</button>`;
+  }
+  area.appendChild(box);
+}
+function completeRandomQuest() {
+  player.level++;
+  player.randomCooldown = Date.now() + 5 * 60 * 60 * 1000; // 5 ชม
+  save();
+  updateUI();
+  alert("ทำภารกิจสำเร็จ! ได้เลเวล +1");
+  showRandomQuest();
+}
+
+function renderBoss() {
+  const area = document.getElementById("contentArea");
+  area.innerHTML = "";
+
+  const list = document.createElement("div");
+  list.className = "boss-list";
+
+  const reward = document.createElement("div");
+  reward.className = "boss-reward";
+
+  for (const [lvl, b] of Object.entries(bossData)) {
+    const level = parseInt(lvl);
+    const div = document.createElement("div");
+    div.className = "boss";
+    if (player.level < level) div.classList.add("locked");
+
+    div.innerHTML = `<div class="name">บอส Lv.${level}</div>
+                     <div class="level">${player.level >= level ? "ปลดล็อก" : "ล็อก"}</div>
+                     ${player.bossesDefeated.includes(level) ? `<div style="font-size:0.7rem; color:#c4ffc4;">(ชนะแล้ว)</div>` : ""}`;
+    
+    div.onclick = () => {
+      if (player.level < level) return;
+      const p = parseInt(prompt(`วิดพื้นที่ทำได้ (ต้องการ ${b.pushup})`));
+      const s = parseInt(prompt(`ซิตอัพที่ทำได้ (ต้องการ ${b.situp})`)) || 0;
+      if (isNaN(p) || p < b.pushup || s < b.situp) {
+        alert("จำนวนไม่พอ!");
+        return;
+      }
+      if (!player.bossesDefeated.includes(level)) {
+        player.bossesDefeated.push(level);
+        player.level = Math.min(player.level + 2, 80);
+        if (!player.titles.includes(b.title)) player.titles.push(b.title);
+        reward.textContent = `ชนะบอส Lv.${level}! ได้รับ "${b.title}" และเลเวล +2!`;
+        save();
+        updateUI();
+        renderBoss();
+      } else {
+        reward.textContent = `คุณเคยชนะบอส Lv.${level} แล้ว`;
+      }
+    };
+    list.appendChild(div);
+  }
+
+  area.appendChild(list);
+  area.appendChild(reward);
+}
+
+function renderTitleSelection() {
+  const area = document.getElementById("contentArea");
+  area.innerHTML = "<label>เลือกฉายาที่ต้องการใช้:</label>";
+
+  const select = document.createElement("select");
+  player.titles.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
+    if (t === player.currentTitle) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  const btn = document.createElement("button");
+  btn.textContent = "ใช้ฉายานี้";
+  btn.onclick = () => {
+    player.currentTitle = select.value;
+    save();
+    updateUI();
+    alert(`ใช้ฉายา "${select.value}" แล้ว`);
+  };
+
+  area.appendChild(select);
+  area.appendChild(btn);
+}
+
+// เริ่มโหลด
+load();
+updateUI();
+</script>
+
+</body>
+</html>
